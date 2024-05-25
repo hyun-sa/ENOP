@@ -67,6 +67,8 @@ function Home() {
     if (selectedDatabase === "perf_data") {
       setSelectedType("bar");
     }
+    // 데이터베이스가 변경될 때 체크박스를 해제
+    setUseRAxis(false);
   }, [selectedDatabase]);
 
   const plotData = useMemo(() => {
@@ -124,6 +126,14 @@ function Home() {
 
   const totalPages = Math.ceil(total / pageSize);
 
+  const workloadName =
+    selectedTag1 === "Compression"
+      ? "7zip benchmark"
+      : "yahoo! cloud serving benchmark";
+
+  const checkboxLabel =
+    selectedDatabase === "perf_data" ? "Maximum" : "Absolute";
+
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col font-serif">
       <main className="container mx-auto flex-1 px-4">
@@ -173,7 +183,7 @@ function Home() {
           </div>
           <div className="border border-gray-400 p-3 rounded-sm shadow-sm flex justify-center flex-col items-center">
             <div className="mb-4">
-              <span className="font-bold">WORKLOAD NAME </span>
+              <span className="font-bold pr-2">{workloadName}</span>
               <span className="text-gray-500">
                 [{selectedTag1}] [{selectedTag2}]
               </span>
@@ -225,7 +235,7 @@ function Home() {
                 </select>
               </div>
               <div className="relative flex items-center">
-                <label className="text-gray-700 mr-2">Absolute</label>
+                <label className="text-gray-700 mr-2">{checkboxLabel}</label>
                 <input
                   type="checkbox"
                   className="form-checkbox"

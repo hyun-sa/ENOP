@@ -39,76 +39,46 @@ app.get("/data", async (req, res) => {
     let total;
 
     if (db === "perf_data") {
-      results = await database
-        .collection(collection)
-        .aggregate([
-          {
-            $match: {},
-          },
-          {
-            $project: {
-              _id: 0,
-              symbol: 1,
-              percentage: 1,
-            },
-          },
-          {
-            $sort: { symbol: 1 },
-          },
-          {
-            $skip: skip,
-          },
-          {
-            $limit: limit,
-          },
-        ])
-        .toArray();
-      total = await database.collection(collection).countDocuments();
-    } else {
       if (useRAxis === "true") {
-        // Absolute 값이 체크된 경우
+        // Maximum 값이 체크된 경우
         results = await database
           .collection(collection)
           .aggregate([
             {
+              $match: {},
+            },
+            {
               $project: {
                 _id: 0,
-                timestamp: 1,
-                page: {
-                  $subtract: [
-                    { $toLong: "$page" },
-                    {
-                      $toLong: {
-                        $reduce: {
-                          input: {
-                            $map: {
-                              input: {
-                                $split: ["$page", ""],
-                              },
-                              as: "char",
-                              in: {
-                                $convert: {
-                                  input: "$$char",
-                                  to: "int",
-                                  onError: 0,
-                                  onNull: 0,
-                                },
-                              },
-                            },
-                          },
-                          initialValue: Number.MAX_VALUE,
-                          in: {
-                            $min: ["$$value", "$$this"],
-                          },
-                        },
-                      },
-                    },
-                  ],
-                },
+                symbol: 1,
+                percentage: 1,
               },
             },
             {
-              $sort: { page: 1 },
+              $sort: { percentage: -1 },
+            },
+            {
+              $limit: 10,
+            },
+          ])
+          .toArray();
+        total = 10; // 상위 10개의 데이터만 선택할 때 total을 10으로 설정
+      } else {
+        results = await database
+          .collection(collection)
+          .aggregate([
+            {
+              $match: {},
+            },
+            {
+              $project: {
+                _id: 0,
+                symbol: 1,
+                percentage: 1,
+              },
+            },
+            {
+              $sort: { symbol: 1 },
             },
             {
               $skip: skip,
@@ -118,6 +88,40 @@ app.get("/data", async (req, res) => {
             },
           ])
           .toArray();
+        total = await database.collection(collection).countDocuments();
+      }
+    } else {
+      if (useRAxis === "true") {
+        // Absolute 값이 체크된 경우
+        const initialResults = await database
+          .collection(collection)
+          .find(
+            {},
+            {
+              projection: {
+                _id: 0,
+                timestamp: 1,
+                page: 1,
+              },
+            }
+          )
+          .sort({ page: 1 })
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+
+        if (initialResults.length > 0) {
+          const minPage = parseInt(`0x${initialResults[0].page}`, 16);
+          results = initialResults.map((doc) => ({
+            ...doc,
+            page: (parseInt(`0x${doc.page}`, 16) - minPage)
+              .toString(16)
+              .toUpperCase(),
+          }));
+        } else {
+          results = initialResults;
+        }
+
         total = await database.collection(collection).countDocuments();
       } else {
         // 기존 쿼리
