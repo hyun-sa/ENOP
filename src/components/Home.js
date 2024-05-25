@@ -67,8 +67,7 @@ function Home() {
     if (selectedDatabase === "perf_data") {
       setSelectedType("bar");
     }
-    // 데이터베이스가 변경될 때 체크박스를 해제
-    setUseRAxis(false);
+    setUseRAxis(false); // 데이터베이스 변경 시 체크박스 해제
   }, [selectedDatabase]);
 
   const plotData = useMemo(() => {
@@ -87,6 +86,17 @@ function Home() {
         type: selectedType,
         mode: selectedType === "scattergl" ? "markers" : undefined,
         marker: { color: "blue" },
+        text: data.map((d) =>
+          d.children && Array.isArray(d.children)
+            ? `Children's address: ${d.children
+                .map((child) => child.address)
+                .join(", ")}`
+            : d.children && d.children.address
+            ? `Children's address: ${d.children.address}`
+            : "No children"
+        ),
+        hoverinfo: "x+y+text",
+        textposition: "none", // Hide text inside the bars
       };
     }
     return {};
@@ -125,14 +135,6 @@ function Home() {
   };
 
   const totalPages = Math.ceil(total / pageSize);
-
-  const workloadName =
-    selectedTag1 === "Compression"
-      ? "7zip benchmark"
-      : "yahoo! cloud serving benchmark";
-
-  const checkboxLabel =
-    selectedDatabase === "perf_data" ? "Maximum" : "Absolute";
 
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col font-serif">
@@ -183,9 +185,11 @@ function Home() {
           </div>
           <div className="border border-gray-400 p-3 rounded-sm shadow-sm flex justify-center flex-col items-center">
             <div className="mb-4">
-              <span className="font-bold pr-2">{workloadName}</span>
+              <span className="font-bold pr-2">WORKLOAD NAME</span>
               <span className="text-gray-500">
-                [{selectedTag1}] [{selectedTag2}]
+                {selectedTag1 === "Compression"
+                  ? "7zip benchmark"
+                  : "yahoo! cloud serving benchmark"}
               </span>
             </div>
             <div className="bg-gray-200 p-4 rounded-md">
@@ -235,7 +239,9 @@ function Home() {
                 </select>
               </div>
               <div className="relative flex items-center">
-                <label className="text-gray-700 mr-2">{checkboxLabel}</label>
+                <label className="text-gray-700 mr-2">
+                  {selectedDatabase === "perf_data" ? "Maximum" : "Absolute"}
+                </label>
                 <input
                   type="checkbox"
                   className="form-checkbox"

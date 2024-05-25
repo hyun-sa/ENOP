@@ -51,7 +51,17 @@ app.get("/data", async (req, res) => {
               $project: {
                 _id: 0,
                 symbol: 1,
-                percentage: 1,
+                // Remove the "%" sign and convert to a float
+                percentage: {
+                  $toDouble: {
+                    $substr: [
+                      "$percentage",
+                      0,
+                      { $subtract: [{ $strLenCP: "$percentage" }, 1] },
+                    ],
+                  },
+                },
+                children: 1,
               },
             },
             {
@@ -59,6 +69,12 @@ app.get("/data", async (req, res) => {
             },
             {
               $limit: 10,
+            },
+            {
+              $unwind: {
+                path: "$children",
+                preserveNullAndEmptyArrays: true,
+              },
             },
           ])
           .toArray();
@@ -75,6 +91,7 @@ app.get("/data", async (req, res) => {
                 _id: 0,
                 symbol: 1,
                 percentage: 1,
+                children: 1,
               },
             },
             {
@@ -85,6 +102,12 @@ app.get("/data", async (req, res) => {
             },
             {
               $limit: limit,
+            },
+            {
+              $unwind: {
+                path: "$children",
+                preserveNullAndEmptyArrays: true,
+              },
             },
           ])
           .toArray();
