@@ -40,7 +40,7 @@ if __name__ == '__main__':
         print("사용 방법: python script.py ftrace_output_file")
         sys.exit(1)
     
-    client = MongoClient("mongodb://tux:password@10.198.137.166:27107/?authSource=admin")
+    client = MongoClient("mongodb://localhost:27107/")
     db = client['ftrace_data']
     file_path = sys.argv[1]
     temp = file_path.split('.')[0]
