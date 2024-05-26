@@ -5,7 +5,7 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 
-const mongoUri = "mongodb://tux:password@10.198.137.166:27017";
+const mongoUri = "mongodb://localhost:27017";
 mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const db = mongoose.connection;
